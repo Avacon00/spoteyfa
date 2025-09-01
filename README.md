@@ -1,5 +1,6 @@
 Apple-Style Spotify Player
 Ein moderner Spotify-Player im  Apple Music Design mit teilweisen echten **Glasmorphismus** und **Backdrop-Filter-Effekten**.
+
 ![spoteyfa_dark](https://github.com/user-attachments/assets/27be7b40-1d0b-4ce4-bc86-249b29479b66)
 ![spoteyfa_light](https://github.com/user-attachments/assets/ecdd5442-6575-4104-aab6-fb4d3d8171e3)
 
