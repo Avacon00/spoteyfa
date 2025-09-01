@@ -15,6 +15,8 @@ class AppleSpotifyPlayer {
         // Progress tracking
         this.progressInterval = null;
         this.lastProgressUpdate = 0;
+        this.lastServerProgress = 0;
+        this.localProgressStart = 0;
         
         // Monitoring
         this.monitoringInterval = null;
@@ -265,6 +267,28 @@ class AppleSpotifyPlayer {
         this.monitoringInterval = setInterval(() => {
             this.getCurrentTrack();
         }, 2000);
+        
+        // Start smooth progress animation
+        this.startProgressAnimation();
+    }
+    
+    startProgressAnimation() {
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+        }
+        
+        this.progressInterval = setInterval(() => {
+            if (this.isPlaying && this.currentTrack && this.lastServerProgress > 0) {
+                // Calculate local progress based on elapsed time since last server update
+                const now = Date.now();
+                const elapsed = now - this.localProgressStart;
+                const currentProgress = this.lastServerProgress + elapsed;
+                
+                if (currentProgress <= this.currentTrack.duration) {
+                    this.updateProgressBar(currentProgress, this.currentTrack.duration);
+                }
+            }
+        }, 100); // Update every 100ms for smooth animation
     }
     
     async getCurrentTrack() {
@@ -301,7 +325,11 @@ class AppleSpotifyPlayer {
                     
                     this.isPlaying = track.is_playing;
                     this.updatePlayButton();
-                    this.updateProgress(track.progress, track.duration);
+                    
+                    // Update server progress for smooth animation
+                    this.lastServerProgress = track.progress;
+                    this.localProgressStart = Date.now();
+                    this.updateProgressBar(track.progress, track.duration);
                 }
             } else if (response.status === 204) {
                 console.log('⚠️ No track playing');
@@ -358,6 +386,11 @@ class AppleSpotifyPlayer {
     togglePlayPause() {
         this.isPlaying = !this.isPlaying;
         this.updatePlayButton();
+        
+        // Reset progress tracking when play state changes
+        if (this.isPlaying) {
+            this.localProgressStart = Date.now();
+        }
         
         if (this.spotifyToken) {
             this.spotifyPlayPause();
@@ -419,7 +452,7 @@ class AppleSpotifyPlayer {
         }
     }
     
-    updateProgress(currentMs, totalMs) {
+    updateProgressBar(currentMs, totalMs) {
         if (!currentMs || !totalMs) return;
         
         const percentage = (currentMs / totalMs) * 100;

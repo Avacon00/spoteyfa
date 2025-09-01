@@ -111,19 +111,39 @@ class AppleSpotifyPlayer {
         
         // Set new timer
         this.autoHideTimer = setTimeout(() => {
-            if (this.isVisible) {
-                console.log('🔄 Auto-hiding player after', delay / 1000, 'seconds');
-                this.hideWithAnimation();
+            try {
+                if (this.isVisible && this.mainWindow && !this.mainWindow.isDestroyed()) {
+                    console.log('🔄 Auto-hiding player after', delay / 1000, 'seconds');
+                    this.hideWithAnimation();
+                }
+            } catch (error) {
+                // Silently handle EPIPE and other console errors
+                // This prevents crashes when window is already closed
             }
         }, delay);
         
-        console.log('⏰ Auto-hide scheduled for', delay / 1000, 'seconds');
+        try {
+            console.log('⏰ Auto-hide scheduled for', delay / 1000, 'seconds');
+        } catch (error) {
+            // Silently handle console errors
+        }
     }
     
     setupWindowEvents() {
         // Handle close button click
         ipcMain.on('close-player', () => {
-            console.log('❌ Close button clicked - quitting app');
+            try {
+                console.log('❌ Close button clicked - quitting app');
+            } catch (error) {
+                // Silently handle console errors
+            }
+            
+            // Clear timers to prevent EPIPE errors
+            if (this.autoHideTimer) {
+                clearTimeout(this.autoHideTimer);
+                this.autoHideTimer = null;
+            }
+            
             this.hideWithAnimation();
             // Nach Animation komplett beenden
             setTimeout(() => {
@@ -133,13 +153,21 @@ class AppleSpotifyPlayer {
         
         // Handle show player request
         ipcMain.on('show-player', () => {
-            console.log('📱 Show player requested from renderer');
+            try {
+                console.log('📱 Show player requested from renderer');
+            } catch (error) {
+                // Silently handle console errors
+            }
             this.showWithAnimation();
         });
         
         // Handle auto-hide timer reset
         ipcMain.on('reset-auto-hide', () => {
-            console.log('⏰ Resetting auto-hide timer due to user interaction');
+            try {
+                console.log('⏰ Resetting auto-hide timer due to user interaction');
+            } catch (error) {
+                // Silently handle console errors
+            }
             this.scheduleAutoHide(12000); // Reset to 12 seconds
         });
         
