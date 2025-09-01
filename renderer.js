@@ -153,7 +153,7 @@ class AppleSpotifyPlayer {
     openSpotifyAuth() {
         console.log('🚀 Opening Spotify auth...');
         
-        const CLIENT_ID = "775fb3995b714b2e91ddd0c4c36861d9";
+        const CLIENT_ID = "*TRAGE HIER DEINE CLIENT_ID EIN*";
         const REDIRECT_URI = "http://127.0.0.1:8888/callback";
         const scopes = 'user-read-currently-playing user-read-playback-state user-modify-playback-state';
         const state = Math.random().toString(36).substring(7);
@@ -211,7 +211,7 @@ class AppleSpotifyPlayer {
     async exchangeCodeForToken(code, clientId) {
         console.log('🔄 Exchanging code...');
         
-        const CLIENT_SECRET = "2c01cacdc1fe4f9d98f3910627508d4e";
+        const CLIENT_SECRET = "*TRAGE HIER DEINE CLIENT_SECRET EIN*";
         const REDIRECT_URI = "http://127.0.0.1:8888/callback";
         
         try {
