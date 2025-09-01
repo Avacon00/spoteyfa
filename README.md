@@ -42,10 +42,7 @@ Ein moderner Spotify-Player im  Apple Music Design mit teilweisen echten **Glasm
    ```
 
 2. **Spotify API konfigurieren**:
-   - Gehe zu [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-   - Erstelle eine neue App
-   - Kopiere Client ID und Secret
-   - Die sind bereits in `renderer.js` eingetragen
+   - ~~Die sind bereits in `renderer.js` eingetragen~~ ✅ **Automatisch über Setup-Wizard**
 
 3. **App starten**:
    ```bash
@@ -70,15 +67,48 @@ Erstellt ausführbare Dateien in `/dist/`:
 
 ## 🎯 Verwendung
 
-### **Erster Start**
-1. App startet automatisch mit Glasmorphismus-Effekt
-2. Zeigt Demo-Content ("Nachtwind - Digital Dreams")
-3. Progress-Bar animiert sich automatisch
+### **🧙‍♂️ Setup-Wizard (Erster Start)**
 
-### **Spotify-Integration**
-1. Für echte Spotify-Daten OAuth-Flow implementieren
-2. Token wird in `getSpotifyToken()` abgerufen
-3. Automatisches Monitoring alle 2 Sekunden
+Beim ersten Start erscheint automatisch ein **deutscher Setup-Wizard**, der dich durch die Einrichtung führt:
+
+#### **Schritt 1: Willkommen**
+- Begrüßung und Überblick über die Einrichtung
+- **"Weiter"** zum nächsten Schritt
+
+#### **Schritt 2: Spotify Developer Account**
+- **Anleitung** zur Erstellung eines Spotify Developer Accounts
+- **"Developer Dashboard öffnen"** Button führt direkt zu [developer.spotify.com](https://developer.spotify.com/dashboard)
+- **Hilfe-Tooltips** für jeden Schritt:
+  1. Account erstellen/einloggen
+  2. Neue App erstellen (`name: "Mein Spotify Player"`)
+  3. Client ID und Client Secret kopieren
+
+#### **Schritt 3: Zugangsdaten eingeben**
+- **Client ID** Eingabefeld mit Validierung
+- **Client Secret** Eingabefeld (versteckbar mit 👁/🙈 Button)
+- **Hilfe-Buttons** (❓) mit detaillierten Tooltips
+- **"Zugangsdaten validieren & Starten"** prüft die Daten live über Spotify API
+
+#### **Automatische Validierung**
+```javascript
+// Live-Validierung der Zugangsdaten
+const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret) },
+    body: new URLSearchParams({ grant_type: 'client_credentials' })
+});
+```
+
+#### **Nach erfolgreicher Einrichtung**
+- Zugangsdaten werden in `localStorage` gespeichert
+- Setup-Wizard verschwindet automatisch
+- **Apple-Style Player** startet sofort
+- Einrichtung muss nie wiederholt werden
+
+### **🎵 Normale Verwendung (Nach Setup)**
+1. App startet direkt mit Apple-Glasmorphismus-Design
+2. Zeigt aktuell spielenden Spotify-Song
+3. Echtzeit-Updates alle 2 Sekunden, flüssige 60fps Timeline-Animation
 
 ### **Apple-Interactions**
 - **Cover/Titel-Klick**: Öffnet Song in Spotify
@@ -154,10 +184,21 @@ setInterval(() => {
 
 ## 🚨 Bekannte Limitierungen
 
-- **OAuth-Flow**: Derzeit Demo-Modus, echte Spotify-Auth muss implementiert werden
+- ~~**OAuth-Flow**: Derzeit Demo-Modus, echte Spotify-Auth muss implementiert werden~~ ✅ **Setup-Wizard implementiert**
 - **Token-Refresh**: Automatische Token-Erneuerung fehlt
 - **macOS-Optimierung**: Vibrancy-Effekte nur auf Mac verfügbar
 - **Performance**: Electron hat höheren RAM-Verbrauch als native Apps
+
+## 🔧 Zurücksetzen der Einrichtung
+
+Falls du deine Spotify-Zugangsdaten ändern möchtest:
+
+```javascript
+// Öffne DevTools (F12) und führe aus:
+localStorage.removeItem('spotify_client_id');
+localStorage.removeItem('spotify_client_secret');
+location.reload(); // Setup-Wizard erscheint wieder
+```
 
 ## 📄 Lizenz
 
