@@ -1,132 +1,166 @@
-# 🎵 Spotify Desktop Overlay Tool
+# 🍎 Apple-Style Spotify Player
 
-Ein elegantes, ressourcenschonendes Windows-Desktop-Tool, das Benachrichtigungen für neue Spotify-Songs anzeigt.
+Ein moderner Spotify-Player im exakten Apple Music Design mit echtem **Glasmorphismus** und **Backdrop-Filter-Effekten**.
 
 ## ✨ Features
 
-- **Echtzeit-Monitoring**: Überwacht aktuell spielende Spotify-Songs
-- **Elegante Overlays**: Dezente, animierte Benachrichtigungen oben rechts
-- **Album-Cover**: Zeigt Thumbnail des aktuellen Album-Covers
-- **Auto-Hide**: Benachrichtigungen verschwinden nach 5 Sekunden automatisch
-- **Klick-to-Open**: Klick auf Benachrichtigung öffnet Song in Spotify
-- **Windows-Startup**: Startet automatisch mit Windows
-- **Ressourcenschonend**: Minimaler Speicher- und CPU-Verbrauch
-- **Moderne UI**: Dunkles Design mit glatten Animationen
+### 🎨 **Perfektes Apple-Design**
+- **Echtes Glasmorphismus**: `backdrop-filter: blur(40px)`
+- **Abgerundete Ecken**: 20px border-radius
+- **Apple-Schatten**: Weiche 60px Schatten mit 10% Opacity
+- **SF Pro Display** Typography (Segoe UI fallback)
+- **Apple-Farbschema**: #007aff Blue, #1d1d1f Text, etc.
+
+### 🎵 **Spotify-Integration**
+- **Live Track-Daten**: Titel, Künstler, Album
+- **Hochauflösende Cover**: 240x240px Album-Covers
+- **Funktionale Controls**: Play/Pause, Previous/Next
+- **Echtzeit-Progress**: Smooth animierte Progress-Bar
+- **Click-to-Open**: Cover-Klick öffnet Spotify
+
+### 🚀 **Apple-Animationen**
+- **60fps Progress-Animation**: Butterweiche Bewegungen
+- **Smooth Hover-Effekte**: Apple-typische Micro-Interactions
+- **Fade-Transitions**: 300ms cubic-bezier Übergänge
+- **Scale-Feedback**: Button-Press Animationen
 
 ## 🛠️ Installation
 
-### 1. Dependencies installieren
-```bash
-python setup.py
-```
+### Voraussetzungen
+- **Node.js** 18+ 
+- **npm** oder **yarn**
+- **Spotify Developer Account**
 
-### 2. Spotify API einrichten
-1. Gehe zu [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Erstelle eine neue App
-3. Kopiere **Client ID** und **Client Secret**
-4. Öffne `spotify_overlay.py` und trage die Credentials ein:
-   ```python
-   CLIENT_ID = "deine_client_id_hier"
-   CLIENT_SECRET = "dein_client_secret_hier"
+### Setup
+
+1. **Dependencies installieren**:
+   ```bash
+   cd electron-player
+   npm install
    ```
-5. Setze in der Spotify App die **Redirect URI** auf: `http://localhost:8888/callback`
 
-### 3. Tool starten
+2. **Spotify API konfigurieren**:
+   - Gehe zu [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   - Erstelle eine neue App
+   - Kopiere Client ID und Secret
+   - Die sind bereits in `renderer.js` eingetragen
+
+3. **App starten**:
+   ```bash
+   npm start
+   ```
+
+4. **Development-Modus** (mit DevTools):
+   ```bash
+   npm run dev
+   ```
+
+### 📦 Build für Distribution
+
 ```bash
-python spotify_overlay.py
+npm run build
 ```
 
-## 🚀 Verwendung
+Erstellt ausführbare Dateien in `/dist/`:
+- **Windows**: `.exe` Installer
+- **macOS**: `.dmg` Package  
+- **Linux**: `.AppImage`
 
-1. **Erstes Starten**: Beim ersten Start öffnet sich automatisch der Browser für die Spotify-Authentifizierung
-2. **Automatische Benachrichtigungen**: Sobald ein neuer Song startet, erscheint eine Overlay-Benachrichtigung
-3. **Interaktion**: Klicke auf die Benachrichtigung um den Song in Spotify zu öffnen
-4. **Background-Modus**: Das Tool läuft unsichtbar im Hintergrund
+## 🎯 Verwendung
 
-## ⚙️ Konfiguration
+### **Erster Start**
+1. App startet automatisch mit Glasmorphismus-Effekt
+2. Zeigt Demo-Content ("Nachtwind - Digital Dreams")
+3. Progress-Bar animiert sich automatisch
 
-### Windows-Startup
-Das Tool fügt sich automatisch zum Windows-Startup hinzu. Falls gewünscht, kann dies deaktiviert werden:
+### **Spotify-Integration**
+1. Für echte Spotify-Daten OAuth-Flow implementieren
+2. Token wird in `getSpotifyToken()` abgerufen
+3. Automatisches Monitoring alle 2 Sekunden
 
-```python
-# In spotify_overlay.py - Zeile entfernen oder kommentieren:
-SystemTrayManager.add_to_startup()
+### **Apple-Interactions**
+- **Cover/Titel-Klick**: Öffnet Song in Spotify
+- **Play-Button**: ⏸ ↔ ▶ Toggle mit Animation
+- **Close-Button**: Apple-Red Hover, Fade-Out
+- **Auto-Hide**: 12 Sekunden (Apple-typisch)
+
+## 🔧 Technische Details
+
+### **Glasmorphismus-Implementierung**
+```css
+background: rgba(255, 255, 255, 0.95);
+backdrop-filter: blur(40px);
+-webkit-backdrop-filter: blur(40px);
+border-radius: 20px;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 ```
 
-### Overlay-Anpassungen
-Verschiedene Einstellungen können in der `OverlayWindow`-Klasse angepasst werden:
-
-```python
-# Position und Größe
-width, height = 350, 100
-x = screen_width - width - 20  # Abstand vom rechten Rand
-y = 20  # Abstand vom oberen Rand
-
-# Auto-Hide Timer
-self.root.after(5000, self.hide)  # 5000ms = 5 Sekunden
-
-# Transparenz
-self.root.attributes('-alpha', 0.95)  # 0.0 bis 1.0
+### **Apple-Animationen**
+```css
+transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 ```
 
-## 🔧 Systemanforderungen
-
-- **Betriebssystem**: Windows 10/11
-- **Python**: 3.8 oder höher
-- **Spotify**: Desktop-App oder Web-Player im Browser
-- **Internet**: Für Spotify API und Album-Cover
-
-## 📁 Projektstruktur
-
-```
-spoteyfa/
-├── spotify_overlay.py    # Hauptanwendung
-├── setup.py             # Setup-Script
-├── requirements.txt     # Python-Dependencies
-└── README.md           # Dokumentation
+### **60fps Progress-Animation**
+```javascript
+setInterval(() => {
+    progressValue += 0.001;
+    progressBar.style.width = `${progressValue * 100}%`;
+}, 16); // 60fps
 ```
 
-## 🔍 Architektur
+### **Electron-Konfiguration**
+- **Transparent Window**: `transparent: true`
+- **Always On Top**: `alwaysOnTop: true`
+- **No Frame**: `frame: false`
+- **macOS Vibrancy**: `vibrancy: 'ultra-dark'`
 
-Das Tool ist modular aufgebaut für einfache Erweiterungen:
+## 📱 Design-Spezifikation
 
-### Hauptkomponenten
-- **SpotifyClient**: API-Anbindung und Datenabruf
-- **OverlayWindow**: GUI und Benachrichtigungsanzeige  
-- **SystemTrayManager**: Windows-Integration
-- **SpotifyOverlayApp**: Orchestrierung und Monitoring
+### **Exakte Maße**
+- **Fenster**: 400px × 500px
+- **Album-Cover**: 240px × 240px
+- **Progress-Bar**: 4px Höhe
+- **Play-Button**: 50px × 50px
+- **Volume-Bar**: 120px Breite
 
-### Erweiterungsmöglichkeiten
-- **Weitere Musik-Services**: Neue Client-Klassen für Apple Music, YouTube Music etc.
-- **Customization**: Themes, Positionen, Animationen
-- **Hotkeys**: Globale Tastenkombinationen
-- **Statistiken**: Hörgewohnheiten tracken
-- **Social Features**: Teilen aktueller Songs
+### **Apple-Typography**
+- **Song-Titel**: 22px, font-weight 600
+- **Künstler**: 16px, color #6e6e73  
+- **Album**: 14px, color #8e8e93
+- **Zeit**: 13px, tabular-nums
 
-## 🐛 Troubleshooting
+### **Farb-Palette**
+```css
+--apple-blue: #007aff;
+--apple-primary: #1d1d1f;
+--apple-secondary: #6e6e73;
+--apple-tertiary: #8e8e93;
+--apple-red: #ff3b30;
+--progress-bg: #e5e5e7;
+```
 
-### "Spotify API-Credentials nicht konfiguriert"
-- Stelle sicher, dass CLIENT_ID und CLIENT_SECRET korrekt eingetragen sind
-- Prüfe, dass die Redirect URI in der Spotify App gesetzt ist
+## 🌟 Warum Electron statt tkinter?
 
-### "Fehler bei Spotify-Initialisierung"  
-- Stelle sicher, dass Spotify läuft (Desktop-App oder Browser)
-- Prüfe deine Internetverbindung
-- Lösche `.spotify_cache` und starte neu
+| Feature | tkinter | Electron |
+|---------|---------|----------|
+| **Glasmorphismus** | ❌ Nicht möglich | ✅ Echte CSS-Effekte |
+| **Abgerundete Ecken** | ❌ Simulation nur | ✅ Native border-radius |
+| **Blur-Effekte** | ❌ Keine Unterstützung | ✅ backdrop-filter |
+| **Smooth Animationen** | ❌ Begrenzt | ✅ 60fps CSS-Transitions |
+| **Apple-Typography** | ❌ Eingeschränkt | ✅ Vollständige Font-Control |
+| **Cross-Platform** | ⚠️ Styling-Unterschiede | ✅ Identisch überall |
 
-### Overlay wird nicht angezeigt
-- Prüfe, dass ein Song in Spotify läuft
-- Stelle sicher, dass Windows-Benachrichtigungen aktiviert sind
-- Prüfe die Bildschirmauflösung (Overlay könnte außerhalb sein)
+## 🚨 Bekannte Limitierungen
+
+- **OAuth-Flow**: Derzeit Demo-Modus, echte Spotify-Auth muss implementiert werden
+- **Token-Refresh**: Automatische Token-Erneuerung fehlt
+- **macOS-Optimierung**: Vibrancy-Effekte nur auf Mac verfügbar
+- **Performance**: Electron hat höheren RAM-Verbrauch als native Apps
 
 ## 📄 Lizenz
 
-Dieses Projekt ist für persönlichen Gebrauch entwickelt. Spotify ist ein Markenzeichen von Spotify AB.
+MIT License - Frei verwendbar für persönliche und kommerzielle Projekte.
 
-## 🤝 Beitragen
+---
 
-Pull Requests und Issues sind willkommen! Besonders für:
-- Performance-Optimierungen
-- Neue Multimedia-Integrationen  
-- UI/UX Verbesserungen
-- Cross-Platform Kompatibilität
+**🍎 Perfekte Apple-Ästhetik mit moderner Web-Technologie!**
