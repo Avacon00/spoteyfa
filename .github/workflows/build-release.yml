@@ -24,29 +24,53 @@ jobs:
       working-directory: Beta_0.2.1
       run: npm ci
     
+    - name: Debug - List files before build
+      working-directory: Beta_0.2.1
+      run: dir
+    
     - name: Build Windows executable
       working-directory: Beta_0.2.1
-      run: npm run build:win
+      run: |
+        npm run build:win
+        echo "Build completed, checking dist folder:"
+        dir dist
+        
+    - name: List all dist contents
+      working-directory: Beta_0.2.1
+      run: |
+        echo "Contents of dist folder:"
+        dir /s dist
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: windows-executables
-        path: Beta_0.2.1/dist/*
+        name: windows-build-output
+        path: Beta_0.2.1/dist/
+        
+    - name: Upload specific exe files
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-exe-files
+        path: Beta_0.2.1/dist/*.exe
+        if-no-files-found: ignore
     
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: Beta_0.2.1/dist/*
+        files: |
+          Beta_0.2.1/dist/*.exe
+          Beta_0.2.1/dist/*.zip
+          Beta_0.2.1/dist/*.msi
         tag_name: ${{ github.ref_name }}
         name: "Apple Spotify Player ${{ github.ref_name }}"
         body: |
-          🎵 **Apple Spotify Player - Portable Release**
+          🎵 **Apple Spotify Player - Windows Release**
           
-          ## 📥 Download
-          - **Windows Portable**: No installation required, no admin rights needed
-          - Simply download the `.exe` and run directly
+          ## 📥 Download Options
+          - **Portable EXE**: No installation required
+          - **Installer (MSI)**: Traditional Windows installation
+          - **ZIP Archive**: Manual extraction
           
           ## ✨ Features
           - 🍎 Apple-style Glassmorphism Design
@@ -56,8 +80,8 @@ jobs:
           - ⚡ Auto-hide & Always-on-top
           
           ## 🚀 Usage
-          1. Download the portable `.exe`
-          2. Run it (no installation needed)
+          1. Download your preferred format
+          2. Run directly (portable) or install (MSI)
           3. Follow the setup wizard for Spotify
           4. Enjoy your Apple-style music player!
           
@@ -67,5 +91,6 @@ jobs:
           - Spotify account (free or premium)
         draft: false
         prerelease: false
+        fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
