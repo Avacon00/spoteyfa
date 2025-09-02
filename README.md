@@ -1,16 +1,16 @@
-Ein moderner Spotify-Player im Apfel Player Design mit teilweisen echten **Glasmorphismus** und **Backdrop-Filter-Effekten**.
+Ein moderner Spotify-Overlay im Apfel-Design mit kleinen **Glasmorphismus** und **Backdrop-Filter-Effekten**.
 
 ![spoteyfa_dark](https://github.com/user-attachments/assets/27be7b40-1d0b-4ce4-bc86-249b29479b66)
 ![spoteyfa_light](https://github.com/user-attachments/assets/ecdd5442-6575-4104-aab6-fb4d3d8171e3)
 
 ## ✨ Features
 
-### 🎨 **Perfektes Apfel-Design**
-- **Echtes Glasmorphismus**: `backdrop-filter: blur(40px)`
-- **Abgerundete Ecken**: 20px border-radius
-- **Apple-Schatten**: Weiche 60px Schatten mit 10% Opacity
-- **SF Pro Display** Typography (Segoe UI fallback)
-- **Apple-Farbschema**: #007aff Blue, #1d1d1f Text, etc.
+### 🎨 **Apfel-Design**
+- **Glasmorphismus**: `backdrop-filter: blur(40px)`
+- **Abgerundete Ecken**
+- **Schatten**
+- **SF Pro Display**
+- **Farbschema 007aff Blue, #1d1d1f**
 
 ### 🎵 **Spotify-Integration**
 - **Live Track-Daten**: Titel, Künstler, Album
@@ -34,7 +34,7 @@ Ein moderner Spotify-Player im Apfel Player Design mit teilweisen echten **Glasm
    ```
 
 2. **Spotify API konfigurieren**:
-   - ~~Die sind bereits in `renderer.js` eingetragen~~ ✅ **Automatisch über Setup-Wizard**
+   - ✅ **Automatisch über Setup-Wizard**
 
 3. **App starten**:
    ```bash
@@ -60,7 +60,6 @@ Erstellt ausführbare Dateien in `/dist/`:
 ## 🎯 Verwendung
 
 ### **🧙‍♂️ Setup-Wizard (Erster Start)**
-
 Beim ersten Start erscheint automatisch ein **deutscher Setup-Wizard**, der dich durch die Einrichtung führt:
 
 #### **Schritt 1: Willkommen**
