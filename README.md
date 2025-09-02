@@ -94,21 +94,6 @@ Beim ersten Start erscheint automatisch ein **deutscher Setup-Wizard**, der dich
 - **Auto-Hide**: 12 Sekunden (Apple-typisch)
 
 ## 🔧 Technische Details
-
-### **Glasmorphismus-Implementierung**
-```css
-background: rgba(255, 255, 255, 0.95);
-backdrop-filter: blur(40px);
--webkit-backdrop-filter: blur(40px);
-border-radius: 20px;
-box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-```
-
-### **Apple-Animationen**
-```css
-transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-```
-
 ### **60fps Progress-Animation**
 ```javascript
 setInterval(() => {
@@ -116,13 +101,6 @@ setInterval(() => {
     progressBar.style.width = `${progressValue * 100}%`;
 }, 16); // 60fps
 ```
-
-### **Electron-Konfiguration**
-- **Transparent Window**: `transparent: true`
-- **Always On Top**: `alwaysOnTop: true`
-- **No Frame**: `frame: false`
-- **macOS Vibrancy**: `vibrancy: 'ultra-dark'`
-
 ## 🔧 Zurücksetzen der Einrichtung
 Falls du deine Spotify-Zugangsdaten ändern möchtest:
 
