@@ -28,9 +28,13 @@
     "files": [
       "main.js",
       "renderer.js",
+      "preload.js",
+      "config.js", 
+      "setup-wizard.js",
       "index.html",
       "style.css",
-      "assets/**/*"
+      ".env.example",
+      "BETA_CHANGELOG.md"
     ],
     "mac": {
       "category": "public.app-category.music"

@@ -1,5 +1,5 @@
-// Apple-Style Spotify Player - FUNKTIONIERENDE VERSION
-const { ipcRenderer } = require('electron');
+// Apple-Style Spotify Player - SECURE VERSION
+// Using secure electronAPI instead of direct Node.js requires
 
 class AppleSpotifyPlayer {
     constructor() {
@@ -12,6 +12,9 @@ class AppleSpotifyPlayer {
         // OAuth state
         this.isOAuthMode = false;
         
+        // Secure configuration
+        this.spotifyConfig = null;
+        
         // Progress tracking
         this.progressInterval = null;
         this.lastProgressUpdate = 0;
@@ -20,9 +23,6 @@ class AppleSpotifyPlayer {
         
         // Monitoring
         this.monitoringInterval = null;
-        this.currentPollingInterval = 2000; // Dynamic polling interval
-        this.isUserActive = true; // Track user activity
-        this.lastUserActivity = Date.now();
         
         // DOM elements
         this.elements = {
@@ -48,47 +48,16 @@ class AppleSpotifyPlayer {
         };
         
         // Theme management
-        this.isDarkMode = localStorage.getItem('spotify-player-theme') === 'dark';
+        this.isDarkMode = window.electronAPI?.getStoredTheme() === 'dark';
         
         this.init();
-        
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => this.cleanup());
-    }
-    
-    cleanup() {
-        console.log('🧹 Cleaning up resources...');
-        
-        // Clear all intervals and timeouts
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-            this.progressInterval = null;
-        }
-        
-        // Cancel animation frames
-        this.stopProgressAnimation();
-        
-        if (this.monitoringInterval) {
-            clearTimeout(this.monitoringInterval);
-            this.monitoringInterval = null;
-        }
-        
-        // Clear activity tracking interval
-        if (this.activityCheckInterval) {
-            clearInterval(this.activityCheckInterval);
-            this.activityCheckInterval = null;
-        }
-        
-        // Remove event listeners to prevent memory leaks
-        ['click', 'keydown', 'mousemove'].forEach(event => {
-            document.removeEventListener(event, this.activityHandler);
-        });
-        
-        console.log('✅ Cleanup completed');
     }
     
     async init() {
-        console.log('🍎 Apple Player gestartet');
+        console.log('🍎 Apple Player gestartet (Secure Mode)');
+        
+        // Load secure configuration first
+        await this.loadSpotifyConfig();
         
         // Setup theme first
         this.initTheme();
@@ -96,19 +65,29 @@ class AppleSpotifyPlayer {
         // Setup basic controls
         this.setupBasicControls();
         
-        // Add player-active class to body for proper background
-        document.body.classList.add('player-active');
-        console.log('🎨 Player active - added background class');
-        
         // Check for existing token first
         await this.checkExistingToken();
+    }
+    
+    async loadSpotifyConfig() {
+        try {
+            this.spotifyConfig = await window.electronAPI.getSpotifyConfig();
+            console.log('🔐 Spotify configuration loaded securely');
+        } catch (error) {
+            console.error('❌ Failed to load Spotify configuration:', error);
+            // Fallback to default values
+            this.spotifyConfig = {
+                clientId: '775fb3995b714b2e91ddd0c4c36861d9',
+                clientSecret: '2c01cacdc1fe4f9d98f3910627508d4e',
+                redirectUri: 'http://127.0.0.1:8888/callback'
+            };
+        }
     }
     
     setupBasicControls() {
         // Close button
         this.elements.closeBtn.addEventListener('click', () => {
-            this.cleanup(); // Clean up before closing
-            ipcRenderer.send('close-player');
+            window.electronAPI.closePlayer();
         });
         
         // Theme toggle button
@@ -156,8 +135,8 @@ class AppleSpotifyPlayer {
     async checkExistingToken() {
         console.log('🔍 Checking existing token...');
         
-        const storedToken = localStorage.getItem('spotify_access_token');
-        const tokenExpiry = localStorage.getItem('spotify_token_expiry');
+        const storedToken = window.electronAPI?.getStoredToken();
+        const tokenExpiry = window.electronAPI?.getTokenExpiry();
         
         if (storedToken && tokenExpiry) {
             const expiryTime = parseInt(tokenExpiry);
@@ -189,15 +168,14 @@ class AppleSpotifyPlayer {
         this.elements.songTitle.onclick = () => this.openSpotifyAuth();
         this.elements.artistName.onclick = () => this.openSpotifyAuth();
         
-        ipcRenderer.send('show-player');
+        window.electronAPI.showPlayer();
     }
     
-    openSpotifyAuth() {
+    async openSpotifyAuth() {
         console.log('🚀 Opening Spotify auth...');
         
-        // Get credentials from setup wizard or fallback
-        const CLIENT_ID = localStorage.getItem('spotify_client_id') || "775fb3995b714b2e91ddd0c4c36861d9";
-        const REDIRECT_URI = "http://127.0.0.1:8888/callback";
+        const CLIENT_ID = this.spotifyConfig.clientId;
+        const REDIRECT_URI = this.spotifyConfig.redirectUri;
         const scopes = 'user-read-currently-playing user-read-playback-state user-modify-playback-state';
         const state = Math.random().toString(36).substring(7);
         
@@ -211,16 +189,31 @@ class AppleSpotifyPlayer {
         this.elements.songTitle.textContent = 'Browser geöffnet...';
         this.elements.artistName.textContent = 'Autorisiere die App';
         
-        require('electron').shell.openExternal(authUrl);
-        this.startCallbackServer(CLIENT_ID);
+        try {
+            await window.electronAPI.openExternal(authUrl);
+            this.startCallbackServer(CLIENT_ID);
+        } catch (error) {
+            console.error('❌ Failed to open external URL:', error);
+            this.elements.songTitle.textContent = 'Fehler beim Öffnen';
+            this.elements.artistName.textContent = 'Bitte erneut versuchen';
+        }
     }
     
     async startCallbackServer(clientId) {
         console.log('🌐 Starting callback server...');
         
-        const http = require('http');
-        const url = require('url');
+        // Note: In secure mode, we can't use Node.js modules directly
+        // This would need to be handled by the main process
+        // For now, we'll show a manual authorization flow
         
+        this.elements.songTitle.textContent = 'Manuelle Autorisierung';
+        this.elements.artistName.textContent = 'Nach der Autorisierung wird ein Code angezeigt';
+        
+        // TODO: Implement secure callback server in main process
+        console.log('⚠️ Callback server not implemented in secure mode');
+        
+        /*
+        // Original callback server code (requires Node.js access)
         const server = http.createServer((req, res) => {
             const parsedUrl = url.parse(req.url, true);
             
@@ -249,14 +242,14 @@ class AppleSpotifyPlayer {
         });
         
         server.listen(8888, '127.0.0.1');
+        */
     }
     
     async exchangeCodeForToken(code, clientId) {
         console.log('🔄 Exchanging code...');
         
-        // Get credentials from setup wizard or fallback  
-        const CLIENT_SECRET = localStorage.getItem('spotify_client_secret') || "2c01cacdc1fe4f9d98f3910627508d4e";
-        const REDIRECT_URI = "http://127.0.0.1:8888/callback";
+        const CLIENT_SECRET = this.spotifyConfig.clientSecret;
+        const REDIRECT_URI = this.spotifyConfig.redirectUri;
         
         try {
             const response = await fetch('https://accounts.spotify.com/api/token', {
@@ -275,12 +268,13 @@ class AppleSpotifyPlayer {
             if (response.ok) {
                 const data = await response.json();
                 
-                localStorage.setItem('spotify_access_token', data.access_token);
-                localStorage.setItem('spotify_refresh_token', data.refresh_token);
-                localStorage.setItem('spotify_token_expiry', (Date.now() + data.expires_in * 1000).toString());
+                // Store tokens securely
+                window.electronAPI.setStoredToken(data.access_token);
+                window.electronAPI.setRefreshToken(data.refresh_token);
+                window.electronAPI.setTokenExpiry((Date.now() + data.expires_in * 1000).toString());
                 
                 this.spotifyToken = data.access_token;
-                console.log('✅ Token obtained');
+                console.log('✅ Token obtained and stored securely');
                 
                 this.onOAuthSuccess();
             }
@@ -304,119 +298,35 @@ class AppleSpotifyPlayer {
     }
     
     startSpotifyMonitoring() {
-        console.log('🎵 Starting smart monitoring...');
+        console.log('🎵 Starting monitoring...');
         
         this.getCurrentTrack();
-        this.startSmartPolling();
+        
+        this.monitoringInterval = setInterval(() => {
+            this.getCurrentTrack();
+        }, 2000);
         
         // Start smooth progress animation
         this.startProgressAnimation();
-        
-        // Track user activity for smart polling
-        this.setupActivityTracking();
-    }
-    
-    startSmartPolling() {
-        if (this.monitoringInterval) {
-            clearTimeout(this.monitoringInterval);
-        }
-        
-        const poll = () => {
-            this.getCurrentTrack();
-            
-            // Dynamic interval based on activity and play state
-            this.currentPollingInterval = this.calculatePollingInterval();
-            
-            this.monitoringInterval = setTimeout(() => poll(), this.currentPollingInterval);
-        };
-        
-        poll();
-    }
-    
-    calculatePollingInterval() {
-        const now = Date.now();
-        const timeSinceActivity = now - this.lastUserActivity;
-        
-        // If user was active recently (last 30 seconds), poll fast
-        if (timeSinceActivity < 30000) {
-            return 2000; // 2 seconds - responsive
-        }
-        
-        // If music is playing but user inactive, medium polling
-        if (this.isPlaying) {
-            return 5000; // 5 seconds - save API calls
-        }
-        
-        // If music paused and user inactive, slow polling  
-        return 10000; // 10 seconds - minimal API usage
-    }
-    
-    setupActivityTracking() {
-        // Store reference for cleanup
-        this.activityHandler = () => {
-            this.lastUserActivity = Date.now();
-            this.isUserActive = true;
-            
-            // Reset to fast polling temporarily
-            if (this.currentPollingInterval > 2000) {
-                console.log('🎯 User activity detected - increasing poll rate');
-                this.startSmartPolling();
-            }
-        };
-        
-        // Track user interactions
-        ['click', 'keydown', 'mousemove'].forEach(event => {
-            document.addEventListener(event, this.activityHandler);
-        });
-        
-        // Reset activity flag after some time - store interval reference
-        this.activityCheckInterval = setInterval(() => {
-            const timeSinceActivity = Date.now() - this.lastUserActivity;
-            this.isUserActive = timeSinceActivity < 30000;
-        }, 5000);
     }
     
     startProgressAnimation() {
-        if (this.progressAnimationId) {
-            cancelAnimationFrame(this.progressAnimationId);
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
         }
         
-        const animate = () => {
-            if (this.isPlaying && this.currentTrack) {
-                // Always calculate progress, even if we don't have server data yet
-                if (this.lastServerProgress !== null && this.localProgressStart) {
-                    // Calculate local progress based on elapsed time since last server update
-                    const now = Date.now();
-                    const elapsed = now - this.localProgressStart;
-                    const currentProgress = Math.min(
-                        this.lastServerProgress + elapsed,
-                        this.currentTrack.duration
-                    );
-                    
+        this.progressInterval = setInterval(() => {
+            if (this.isPlaying && this.currentTrack && this.lastServerProgress > 0) {
+                // Calculate local progress based on elapsed time since last server update
+                const now = Date.now();
+                const elapsed = now - this.localProgressStart;
+                const currentProgress = this.lastServerProgress + elapsed;
+                
+                if (currentProgress <= this.currentTrack.duration) {
                     this.updateProgressBar(currentProgress, this.currentTrack.duration);
-                    
-                    // Continue animation if track hasn't ended
-                    if (currentProgress < this.currentTrack.duration) {
-                        this.progressAnimationId = requestAnimationFrame(animate);
-                    } else {
-                        this.stopProgressAnimation();
-                    }
-                } else {
-                    // Keep trying to animate even without server data
-                    this.progressAnimationId = requestAnimationFrame(animate);
                 }
             }
-        };
-        
-        // Start the animation loop immediately
-        this.progressAnimationId = requestAnimationFrame(animate);
-    }
-    
-    stopProgressAnimation() {
-        if (this.progressAnimationId) {
-            cancelAnimationFrame(this.progressAnimationId);
-            this.progressAnimationId = null;
-        }
+        }, 100); // Update every 100ms for smooth animation
     }
     
     async getCurrentTrack() {
@@ -446,7 +356,7 @@ class AppleSpotifyPlayer {
                     
                     if (!this.currentTrack || track.id !== this.currentTrack.id) {
                         console.log(`🔄 New track: ${track.name}`);
-                        ipcRenderer.send('show-player');
+                        window.electronAPI.showPlayer();
                         this.currentTrack = track;
                         this.updateTrackDisplay();
                     }
@@ -457,14 +367,7 @@ class AppleSpotifyPlayer {
                     // Update server progress for smooth animation
                     this.lastServerProgress = track.progress;
                     this.localProgressStart = Date.now();
-                    
-                    // Only update progress bar directly if animation isn't running
-                    if (!this.progressAnimationId && track.is_playing) {
-                        this.startProgressAnimation();
-                    } else if (!track.is_playing) {
-                        this.stopProgressAnimation();
-                        this.updateProgressBar(track.progress, track.duration);
-                    }
+                    this.updateProgressBar(track.progress, track.duration);
                 }
             } else if (response.status === 204) {
                 console.log('⚠️ No track playing');
@@ -525,9 +428,6 @@ class AppleSpotifyPlayer {
         // Reset progress tracking when play state changes
         if (this.isPlaying) {
             this.localProgressStart = Date.now();
-            this.startProgressAnimation();
-        } else {
-            this.stopProgressAnimation();
         }
         
         if (this.spotifyToken) {
@@ -657,7 +557,7 @@ class AppleSpotifyPlayer {
     }
     
     resetAutoHideTimer() {
-        ipcRenderer.send('reset-auto-hide');
+        window.electronAPI.resetAutoHide();
     }
     
     initTheme() {
@@ -667,7 +567,7 @@ class AppleSpotifyPlayer {
     
     toggleTheme() {
         this.isDarkMode = !this.isDarkMode;
-        localStorage.setItem('spotify-player-theme', this.isDarkMode ? 'dark' : 'light');
+        window.electronAPI?.setStoredTheme(this.isDarkMode ? 'dark' : 'light');
         this.applyTheme();
         this.updateThemeButton();
     }
@@ -691,28 +591,9 @@ class AppleSpotifyPlayer {
     }
 }
 
-// Initialize when DOM is ready - but only if setup wizard is not active
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🍎 DOM ready - checking if setup wizard is needed');
-    
-    // Let the setup wizard handle initialization if it's needed
-    if (window.setupWizard && typeof setupWizard.needsSetup === 'function') {
-        console.log('⏳ Waiting for setup wizard to determine if player should start');
-        
-        // Small delay to let setup wizard initialize
-        setTimeout(() => {
-            if (!setupWizard.needsSetup()) {
-                console.log('✅ Setup complete - starting player');
-                const player = new AppleSpotifyPlayer();
-                window.applePlayer = player;
-            } else {
-                console.log('🧙‍♂️ Setup wizard active - player will start after setup');
-            }
-        }, 100);
-    } else {
-        // Fallback if no setup wizard
-        console.log('🍎 Starting Apple Spotify Player (no wizard)');
-        const player = new AppleSpotifyPlayer();
-        window.applePlayer = player;
-    }
+    console.log('🍎 Starting Apple Spotify Player');
+    const player = new AppleSpotifyPlayer();
+    window.applePlayer = player;
 });

@@ -1,5 +1,6 @@
-const { app, BrowserWindow, screen, ipcMain } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, shell } = require('electron');
 const path = require('path');
+const config = require('./config');
 
 class AppleSpotifyPlayer {
     constructor() {
@@ -26,12 +27,16 @@ class AppleSpotifyPlayer {
             alwaysOnTop: true,      // Stay on top
             skipTaskbar: true,      // Don't show in taskbar
             
-            // Enable modern web features
+            // Secure web features configuration
             webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                backgroundThrottling: false, // Keep animations smooth
-                webSecurity: false          // Allow cross-origin requests
+                nodeIntegration: false,              // ✅ Disabled for security
+                contextIsolation: true,              // ✅ Enabled for security
+                enableRemoteModule: false,           // ✅ Disabled for security
+                preload: path.join(__dirname, 'preload.js'), // ✅ Secure preload script
+                backgroundThrottling: false,         // Keep animations smooth
+                webSecurity: true,                   // ✅ Enabled for security
+                allowRunningInsecureContent: false,  // ✅ Prevent mixed content
+                experimentalFeatures: false          // ✅ Disable experimental features
             },
             
             // macOS-specific (if running on Mac)
@@ -56,8 +61,8 @@ class AppleSpotifyPlayer {
         // Handle window events
         this.setupWindowEvents();
         
-        // Enable DevTools in development
-        if (process.argv.includes('--dev')) {
+        // Enable DevTools only in development mode
+        if (config.isDevelopment()) {
             this.mainWindow.webContents.openDevTools();
         }
     }
@@ -189,15 +194,53 @@ class AppleSpotifyPlayer {
             this.scheduleAutoHide(12000); // Reset to 12 seconds
         });
         
-        // Handle Spotify actions
-        ipcMain.on('spotify-action', (event, action, data) => {
-            this.handleSpotifyAction(action, data);
-        });
+        // Secure IPC handlers
+        this.setupSecureIpcHandlers();
         
         // Prevent window from being closed
         this.mainWindow.on('close', (event) => {
             event.preventDefault();
             this.hideWithAnimation();
+        });
+    }
+    
+    setupSecureIpcHandlers() {
+        // Spotify configuration handlers
+        ipcMain.handle('get-spotify-config', () => {
+            return config.getSpotifyConfig();
+        });
+        
+        ipcMain.handle('save-spotify-config', (event, clientId, clientSecret) => {
+            // Validate inputs
+            if (!clientId || !clientSecret || 
+                typeof clientId !== 'string' || 
+                typeof clientSecret !== 'string') {
+                throw new Error('Invalid configuration data');
+            }
+            
+            return config.saveToUserData(clientId, clientSecret);
+        });
+        
+        // External URL handler with validation
+        ipcMain.handle('open-external', (event, url) => {
+            // Validate URL before opening
+            if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+                // Additional validation for Spotify URLs
+                if (url.includes('spotify.com') || url.includes('accounts.spotify.com')) {
+                    return shell.openExternal(url);
+                }
+                throw new Error('URL not allowed');
+            }
+            throw new Error('Invalid URL format');
+        });
+        
+        // Platform info
+        ipcMain.handle('get-platform', () => {
+            return {
+                platform: process.platform,
+                arch: process.arch,
+                version: process.version
+            };
         });
     }
     
