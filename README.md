@@ -20,14 +20,7 @@ Ein moderner Spotify-Player im Apfel Player Design mit teilweisen echten **Glasm
 - **Echtzeit-Progress**: Smooth animierte Progress-Bar
 - **Click-to-Open**: Cover-Klick öffnet Spotify
 
-### 🚀 **Apple-Animationen**
-- **60fps Progress-Animation**: Butterweiche Bewegungen
-- **Smooth Hover-Effekte**: Apple-typische Micro-Interactions
-- **Fade-Transitions**: 300ms cubic-bezier Übergänge
-- **Scale-Feedback**: Button-Press Animationen
-
 ## 🛠️ Installation
-
 ### Voraussetzungen
 - **Node.js** 18+ 
 - **npm** oder **yarn**
