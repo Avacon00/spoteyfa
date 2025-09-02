@@ -24,21 +24,21 @@ jobs:
       working-directory: Beta_0.2.1
       run: npm ci
     
-    - name: Build portable executable
+    - name: Build Windows executable
       working-directory: Beta_0.2.1
-      run: npm run build:portable
+      run: npm run build:win
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: windows-portable
-        path: Beta_0.2.1/dist/*.exe
+        name: windows-executables
+        path: Beta_0.2.1/dist/*
     
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: Beta_0.2.1/dist/*.exe
+        files: Beta_0.2.1/dist/*
         tag_name: ${{ github.ref_name }}
         name: "Apple Spotify Player ${{ github.ref_name }}"
         body: |
