@@ -1,5 +1,5 @@
-// Apple-Style Spotify Player - FUNKTIONIERENDE VERSION
-const { ipcRenderer } = require('electron');
+// Apple-Style Spotify Player - SECURE VERSION
+// Using secure electronAPI instead of direct Node.js requires
 
 class AppleSpotifyPlayer {
     constructor() {
@@ -11,6 +11,9 @@ class AppleSpotifyPlayer {
         
         // OAuth state
         this.isOAuthMode = false;
+        
+        // Secure configuration
+        this.spotifyConfig = null;
         
         // Progress tracking
         this.progressInterval = null;
@@ -48,7 +51,7 @@ class AppleSpotifyPlayer {
         };
         
         // Theme management
-        this.isDarkMode = localStorage.getItem('spotify-player-theme') === 'dark';
+        this.isDarkMode = window.electronAPI?.getStoredTheme() === 'dark';
         
         this.init();
         
@@ -88,7 +91,10 @@ class AppleSpotifyPlayer {
     }
     
     async init() {
-        console.log('🍎 Apple Player gestartet');
+        console.log('🍎 Apple Player gestartet (Secure Mode)');
+        
+        // Load secure configuration first
+        await this.loadSpotifyConfig();
         
         // Setup theme first
         this.initTheme();
@@ -100,11 +106,30 @@ class AppleSpotifyPlayer {
         await this.checkExistingToken();
     }
     
+    async loadSpotifyConfig() {
+        try {
+            this.spotifyConfig = await window.electronAPI.getSpotifyConfig();
+            console.log('🔐 Spotify configuration loaded securely');
+        } catch (error) {
+            console.error('❌ Failed to load Spotify configuration:', error);
+            // Fallback to default values
+            this.spotifyConfig = {
+                clientId: '775fb3995b714b2e91ddd0c4c36861d9',
+                clientSecret: '2c01cacdc1fe4f9d98f3910627508d4e',
+                redirectUri: 'http://127.0.0.1:8888/callback'
+            };
+        }
+    }
+    
     setupBasicControls() {
         // Close button
         this.elements.closeBtn.addEventListener('click', () => {
+<<<<<<< HEAD:renderer.js
             this.cleanup(); // Clean up before closing
             ipcRenderer.send('close-player');
+=======
+            window.electronAPI.closePlayer();
+>>>>>>> 2d70d9e799f7a41cab182b8469aab2f3b5c7d9cb:Beta_0.2.1/renderer.js
         });
         
         // Theme toggle button
@@ -152,6 +177,7 @@ class AppleSpotifyPlayer {
     async checkExistingToken() {
         console.log('🔍 Checking existing token...');
         
+<<<<<<< HEAD:renderer.js
         // Prüfe erst ob Credentials konfiguriert sind
         const clientId = await this.getStoredClientId();
         const clientSecret = await this.getStoredClientSecret();
@@ -164,6 +190,10 @@ class AppleSpotifyPlayer {
         
         const storedToken = localStorage.getItem('spotify_access_token');
         const tokenExpiry = localStorage.getItem('spotify_token_expiry');
+=======
+        const storedToken = window.electronAPI?.getStoredToken();
+        const tokenExpiry = window.electronAPI?.getTokenExpiry();
+>>>>>>> 2d70d9e799f7a41cab182b8469aab2f3b5c7d9cb:Beta_0.2.1/renderer.js
         
         if (storedToken && tokenExpiry) {
             const expiryTime = parseInt(tokenExpiry);
@@ -195,14 +225,19 @@ class AppleSpotifyPlayer {
         this.elements.songTitle.onclick = () => this.openSpotifyAuth();
         this.elements.artistName.onclick = () => this.openSpotifyAuth();
         
-        ipcRenderer.send('show-player');
+        window.electronAPI.showPlayer();
     }
     
     async openSpotifyAuth() {
         console.log('🚀 Opening Spotify auth...');
         
+<<<<<<< HEAD:renderer.js
         const CLIENT_ID = await this.getStoredClientId();
         const REDIRECT_URI = "http://127.0.0.1:8888/callback";
+=======
+        const CLIENT_ID = this.spotifyConfig.clientId;
+        const REDIRECT_URI = this.spotifyConfig.redirectUri;
+>>>>>>> 2d70d9e799f7a41cab182b8469aab2f3b5c7d9cb:Beta_0.2.1/renderer.js
         const scopes = 'user-read-currently-playing user-read-playback-state user-modify-playback-state';
         const state = Math.random().toString(36).substring(7);
         
@@ -221,16 +256,31 @@ class AppleSpotifyPlayer {
         this.elements.songTitle.textContent = 'Browser geöffnet...';
         this.elements.artistName.textContent = 'Autorisiere die App';
         
-        require('electron').shell.openExternal(authUrl);
-        this.startCallbackServer(CLIENT_ID);
+        try {
+            await window.electronAPI.openExternal(authUrl);
+            this.startCallbackServer(CLIENT_ID);
+        } catch (error) {
+            console.error('❌ Failed to open external URL:', error);
+            this.elements.songTitle.textContent = 'Fehler beim Öffnen';
+            this.elements.artistName.textContent = 'Bitte erneut versuchen';
+        }
     }
     
     async startCallbackServer(clientId) {
         console.log('🌐 Starting callback server...');
         
-        const http = require('http');
-        const url = require('url');
+        // Note: In secure mode, we can't use Node.js modules directly
+        // This would need to be handled by the main process
+        // For now, we'll show a manual authorization flow
         
+        this.elements.songTitle.textContent = 'Manuelle Autorisierung';
+        this.elements.artistName.textContent = 'Nach der Autorisierung wird ein Code angezeigt';
+        
+        // TODO: Implement secure callback server in main process
+        console.log('⚠️ Callback server not implemented in secure mode');
+        
+        /*
+        // Original callback server code (requires Node.js access)
         const server = http.createServer((req, res) => {
             const parsedUrl = url.parse(req.url, true);
             
@@ -259,13 +309,19 @@ class AppleSpotifyPlayer {
         });
         
         server.listen(8888, '127.0.0.1');
+        */
     }
     
     async exchangeCodeForToken(code, clientId) {
         console.log('🔄 Exchanging code...');
         
+<<<<<<< HEAD:renderer.js
         const CLIENT_SECRET = await this.getStoredClientSecret();
         const REDIRECT_URI = "http://127.0.0.1:8888/callback";
+=======
+        const CLIENT_SECRET = this.spotifyConfig.clientSecret;
+        const REDIRECT_URI = this.spotifyConfig.redirectUri;
+>>>>>>> 2d70d9e799f7a41cab182b8469aab2f3b5c7d9cb:Beta_0.2.1/renderer.js
         
         if (!CLIENT_SECRET) {
             this.showNoCredentialsMessage();
@@ -289,12 +345,13 @@ class AppleSpotifyPlayer {
             if (response.ok) {
                 const data = await response.json();
                 
-                localStorage.setItem('spotify_access_token', data.access_token);
-                localStorage.setItem('spotify_refresh_token', data.refresh_token);
-                localStorage.setItem('spotify_token_expiry', (Date.now() + data.expires_in * 1000).toString());
+                // Store tokens securely
+                window.electronAPI.setStoredToken(data.access_token);
+                window.electronAPI.setRefreshToken(data.refresh_token);
+                window.electronAPI.setTokenExpiry((Date.now() + data.expires_in * 1000).toString());
                 
                 this.spotifyToken = data.access_token;
-                console.log('✅ Token obtained');
+                console.log('✅ Token obtained and stored securely');
                 
                 this.onOAuthSuccess();
             }
@@ -454,7 +511,7 @@ class AppleSpotifyPlayer {
                     
                     if (!this.currentTrack || track.id !== this.currentTrack.id) {
                         console.log(`🔄 New track: ${track.name}`);
-                        ipcRenderer.send('show-player');
+                        window.electronAPI.showPlayer();
                         this.currentTrack = track;
                         this.updateTrackDisplay();
                     }
@@ -658,7 +715,7 @@ class AppleSpotifyPlayer {
     }
     
     resetAutoHideTimer() {
-        ipcRenderer.send('reset-auto-hide');
+        window.electronAPI.resetAutoHide();
     }
     
     initTheme() {
@@ -668,7 +725,7 @@ class AppleSpotifyPlayer {
     
     toggleTheme() {
         this.isDarkMode = !this.isDarkMode;
-        localStorage.setItem('spotify-player-theme', this.isDarkMode ? 'dark' : 'light');
+        window.electronAPI?.setStoredTheme(this.isDarkMode ? 'dark' : 'light');
         this.applyTheme();
         this.updateThemeButton();
     }

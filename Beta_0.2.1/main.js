@@ -1,71 +1,15 @@
-const { app, BrowserWindow, screen, ipcMain } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, shell } = require('electron');
 const path = require('path');
-const ConfigManager = require('./config-manager');
+const config = require('./config');
 
 class AppleSpotifyPlayer {
     constructor() {
         this.mainWindow = null;
-        this.setupWindow = null;
         this.isVisible = false;
         this.autoHideTimer = null;
-        this.configManager = new ConfigManager();
-        this.isFirstRun = false;
     }
 
-    async createWindow() {
-        // Prüfe ob Setup benötigt wird
-        await this.checkFirstRun();
-        
-        if (this.isFirstRun) {
-            this.createSetupWindow();
-            return;
-        }
-        
-        this.createMainWindow();
-    }
-    
-    async checkFirstRun() {
-        this.isFirstRun = this.configManager.isFirstRun();
-        console.log('🔍 First run check:', this.isFirstRun ? 'Setup needed' : 'Setup completed');
-    }
-    
-    createSetupWindow() {
-        console.log('🔧 Creating setup window...');
-        
-        const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
-        
-        this.setupWindow = new BrowserWindow({
-            width: 600,
-            height: 700,
-            x: Math.floor((screenWidth - 600) / 2),
-            y: Math.floor((screenHeight - 700) / 2),
-            
-            frame: false,
-            transparent: true,
-            resizable: false,
-            alwaysOnTop: true,
-            skipTaskbar: false,
-            
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                webSecurity: true // Sicherheit für Setup aktiviert
-            },
-            
-            show: false
-        });
-        
-        this.setupWindow.loadFile('setup-wizard.html');
-        
-        this.setupWindow.once('ready-to-show', () => {
-            this.setupWindow.show();
-            this.setupWindow.focus();
-        });
-        
-        this.setupSetupEvents();
-    }
-    
-    createMainWindow() {
+    createWindow() {
         // Get display dimensions
         const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
         
@@ -83,12 +27,16 @@ class AppleSpotifyPlayer {
             alwaysOnTop: true,      // Stay on top
             skipTaskbar: true,      // Don't show in taskbar
             
-            // Enable modern web features
+            // Secure web features configuration
             webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                backgroundThrottling: false, // Keep animations smooth
-                webSecurity: true           // Sicherheit wieder aktiviert
+                nodeIntegration: false,              // ✅ Disabled for security
+                contextIsolation: true,              // ✅ Enabled for security
+                enableRemoteModule: false,           // ✅ Disabled for security
+                preload: path.join(__dirname, 'preload.js'), // ✅ Secure preload script
+                backgroundThrottling: false,         // Keep animations smooth
+                webSecurity: true,                   // ✅ Enabled for security
+                allowRunningInsecureContent: false,  // ✅ Prevent mixed content
+                experimentalFeatures: false          // ✅ Disable experimental features
             },
             
             // macOS-specific (if running on Mac)
@@ -111,10 +59,10 @@ class AppleSpotifyPlayer {
         });
         
         // Handle window events
-        this.setupMainWindowEvents();
+        this.setupWindowEvents();
         
-        // Enable DevTools in development
-        if (process.argv.includes('--dev')) {
+        // Enable DevTools only in development mode
+        if (config.isDevelopment()) {
             this.mainWindow.webContents.openDevTools();
         }
     }
@@ -138,8 +86,8 @@ class AppleSpotifyPlayer {
         };
         fadeIn();
         
-        // Auto-hide after 12 seconds (Apple-style)
-        this.scheduleAutoHide(12000);
+        // Auto-hide after 12 seconds (Apple-style) - but not during setup wizard
+        this.checkAndScheduleAutoHide();
     }
     
     hideWithAnimation() {
@@ -158,6 +106,24 @@ class AppleSpotifyPlayer {
             }
         };
         fadeOut();
+    }
+    
+    checkAndScheduleAutoHide() {
+        // Check if setup wizard is active
+        this.mainWindow.webContents.executeJavaScript(`
+            document.getElementById('setupWizard') && 
+            document.getElementById('setupWizard').style.display !== 'none'
+        `).then((isWizardActive) => {
+            if (!isWizardActive) {
+                // Only auto-hide if wizard is not active
+                this.scheduleAutoHide(12000);
+            } else {
+                console.log('🧙‍♂️ Setup wizard active - skipping auto-hide');
+            }
+        }).catch(() => {
+            // Fallback: schedule auto-hide anyway
+            this.scheduleAutoHide(12000);
+        });
     }
     
     scheduleAutoHide(delay) {
@@ -186,52 +152,7 @@ class AppleSpotifyPlayer {
         }
     }
     
-    setupSetupEvents() {
-        // Setup-spezifische Events
-        ipcMain.on('setup-completed', (event, credentials) => {
-            console.log('✅ Setup completed, switching to main player');
-            
-            // Speichere Credentials sicher
-            if (credentials && credentials.clientId && credentials.clientSecret) {
-                this.configManager.markSetupCompleted(credentials.clientId, credentials.clientSecret);
-            }
-            
-            if (this.setupWindow) {
-                this.setupWindow.close();
-                this.setupWindow = null;
-            }
-            
-            this.isFirstRun = false;
-            this.createMainWindow();
-        });
-        
-        ipcMain.on('restart-app', () => {
-            console.log('🔄 Restarting app...');
-            app.relaunch();
-            app.quit();
-        });
-        
-        ipcMain.on('reset-config', () => {
-            console.log('🗑️ Resetting configuration...');
-            this.configManager.resetConfig();
-            app.relaunch();
-            app.quit();
-        });
-        
-        // Provide credentials to renderer
-        ipcMain.handle('get-credentials', () => {
-            return this.configManager.getCredentials();
-        });
-        
-        this.setupWindow.on('closed', () => {
-            if (this.isFirstRun) {
-                // Falls Setup-Fenster geschlossen wird ohne Abschluss
-                app.quit();
-            }
-        });
-    }
-    
-    setupMainWindowEvents() {
+    setupWindowEvents() {
         // Handle close button click
         ipcMain.on('close-player', () => {
             try {
@@ -273,25 +194,53 @@ class AppleSpotifyPlayer {
             this.scheduleAutoHide(12000); // Reset to 12 seconds
         });
         
-        // Handle Spotify actions
-        ipcMain.on('spotify-action', (event, action, data) => {
-            this.handleSpotifyAction(action, data);
-        });
-        
-        // Handle theme changes
-        ipcMain.on('theme-changed', (event, theme) => {
-            this.configManager.updateTheme(theme);
-        });
-        
-        // Get current theme
-        ipcMain.handle('get-theme', () => {
-            return this.configManager.getTheme();
-        });
+        // Secure IPC handlers
+        this.setupSecureIpcHandlers();
         
         // Prevent window from being closed
         this.mainWindow.on('close', (event) => {
             event.preventDefault();
             this.hideWithAnimation();
+        });
+    }
+    
+    setupSecureIpcHandlers() {
+        // Spotify configuration handlers
+        ipcMain.handle('get-spotify-config', () => {
+            return config.getSpotifyConfig();
+        });
+        
+        ipcMain.handle('save-spotify-config', (event, clientId, clientSecret) => {
+            // Validate inputs
+            if (!clientId || !clientSecret || 
+                typeof clientId !== 'string' || 
+                typeof clientSecret !== 'string') {
+                throw new Error('Invalid configuration data');
+            }
+            
+            return config.saveToUserData(clientId, clientSecret);
+        });
+        
+        // External URL handler with validation
+        ipcMain.handle('open-external', (event, url) => {
+            // Validate URL before opening
+            if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+                // Additional validation for Spotify URLs
+                if (url.includes('spotify.com') || url.includes('accounts.spotify.com')) {
+                    return shell.openExternal(url);
+                }
+                throw new Error('URL not allowed');
+            }
+            throw new Error('Invalid URL format');
+        });
+        
+        // Platform info
+        ipcMain.handle('get-platform', () => {
+            return {
+                platform: process.platform,
+                arch: process.arch,
+                version: process.version
+            };
         });
     }
     

@@ -69,6 +69,9 @@ Thumbs.db
 spotify_cache.json
 apple_spotify_cache.json
 
+# Secure configuration files
+spotify-config.json
+
 # Backup files
 *.tar.gz
 *.zip
