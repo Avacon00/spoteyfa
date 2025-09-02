@@ -1,6 +1,6 @@
 {
   "name": "apple-spotify-player",
-  "version": "0.2.5",
+  "version": "1.0.0",
   "description": "Apple-Style Spotify Player with Glassmorphism",
   "main": "main.js",
   "scripts": {
