@@ -150,9 +150,14 @@ class AppleSpotifyPlayer {
             } : {}),
             
             ...(process.platform === 'win32' ? {
-                // Windows 11 style improvements
+                // Windows 11 style improvements + UI Fix
                 roundedCorners: true,
-                opacity: 0.95
+                opacity: 0.95,
+                show: true,           // Force show on Windows
+                center: true,         // Always center window
+                movable: true,        // Allow dragging
+                minimizable: true,    // Allow minimize
+                skipTaskbar: false    // Show in taskbar for Windows
             } : {}),
             
             ...(process.platform === 'linux' ? {
@@ -169,6 +174,13 @@ class AppleSpotifyPlayer {
         
         // Apple-style fade-in when ready
         this.mainWindow.once('ready-to-show', () => {
+            // Windows-specific fix: Ensure window is visible
+            if (process.platform === 'win32') {
+                this.mainWindow.show();
+                this.mainWindow.focus();
+                this.mainWindow.setAlwaysOnTop(true);
+                console.log('🪟 Windows: Force-showing window');
+            }
             this.showWithAnimation();
         });
         
@@ -181,6 +193,21 @@ class AppleSpotifyPlayer {
         // Enable DevTools in development
         if (process.argv.includes('--dev')) {
             this.mainWindow.webContents.openDevTools();
+        }
+        
+        // Handle command line debug flags (for Windows fix script)
+        if (process.argv.includes('--show') || process.argv.includes('--enable-logging')) {
+            console.log('🔧 Debug mode: Force-showing window');
+            this.mainWindow.show();
+            this.mainWindow.focus();
+            this.mainWindow.center();
+            
+            if (process.argv.includes('--enable-logging')) {
+                console.log('📝 Logging enabled for debugging');
+                this.mainWindow.webContents.on('console-message', (event, level, message) => {
+                    console.log('Renderer:', message);
+                });
+            }
         }
     }
     
