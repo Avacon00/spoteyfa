@@ -1,15 +1,15 @@
-# 🎵 Apple Spotify Player v0.2.2 - Source Release
+# 🎵 Apple Spotify Player v0.2.5 - Source Release
 
 ## 📥 Download & Installation
 
 ### For Windows Users:
-1. **Download** `Apple-Spotify-Player-v0.2.2-Source.zip`
+1. **Download** `Apple-Spotify-Player-v0.2.5-Source.zip`
 2. **Extract** the ZIP file to any folder
 3. **Double-click** `INSTALL_AND_RUN.bat`
 4. **Done!** The app will install and start automatically ✨
 
 ### For macOS/Linux Users:
-1. **Download** `Apple-Spotify-Player-v0.2.2-Source.zip`
+1. **Download** `Apple-Spotify-Player-v0.2.5-Source.zip`
 2. **Extract** the ZIP file to any folder
 3. **Open Terminal** in the extracted folder
 4. **Run**: `chmod +x install-and-run.sh && ./install-and-run.sh`
@@ -114,12 +114,16 @@ If you need to reconfigure Spotify:
 
 ## 📝 Version History
 
-**v0.2.2** - Current Release
+**v0.2.5** - Current Release
+- ✅ Major update with setup wizard and portable distribution
+- ✅ One-click installation system
+- ✅ Improved German setup wizard
+- ✅ Enhanced portable version
+- ✅ Better user experience and stability
 - ✅ Fixed GitHub Actions build issues
 - ✅ Improved installation process
 - ✅ Added cross-platform support
 - ✅ Enhanced security configuration
-- ✅ Better error handling
 
 ---
 

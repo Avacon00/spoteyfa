@@ -18,25 +18,25 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: Beta_0.2.1/package-lock.json
+        cache-dependency-path: Spoteyfa-Portable/app/package-lock.json
     
     - name: Install dependencies
-      working-directory: Beta_0.2.1
+      working-directory: Spoteyfa-Portable/app
       run: npm ci
     
     - name: Debug - List files before build
-      working-directory: Beta_0.2.1
+      working-directory: Spoteyfa-Portable/app
       run: dir
     
     - name: Build Windows executable
-      working-directory: Beta_0.2.1
+      working-directory: Spoteyfa-Portable/app
       run: |
         npm run build:win
         echo "Build completed, checking dist folder:"
         dir dist
         
     - name: List all dist contents
-      working-directory: Beta_0.2.1
+      working-directory: Spoteyfa-Portable/app
       run: |
         echo "Contents of dist folder:"
         dir /s dist
@@ -45,13 +45,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: windows-build-output
-        path: Beta_0.2.1/dist/
+        path: Spoteyfa-Portable/app/dist/
         
     - name: Upload specific exe files
       uses: actions/upload-artifact@v4
       with:
         name: windows-exe-files
-        path: Beta_0.2.1/dist/*.exe
+        path: Spoteyfa-Portable/app/dist/*.exe
         if-no-files-found: ignore
     
     - name: Create Release
@@ -59,9 +59,9 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          Beta_0.2.1/dist/*.exe
-          Beta_0.2.1/dist/*.zip
-          Beta_0.2.1/dist/*.msi
+          Spoteyfa-Portable/app/dist/*.exe
+          Spoteyfa-Portable/app/dist/*.zip
+          Spoteyfa-Portable/app/dist/*.msi
         tag_name: ${{ github.ref_name }}
         name: "Apple Spotify Player ${{ github.ref_name }}"
         body: |

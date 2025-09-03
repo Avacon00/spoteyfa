@@ -6,8 +6,8 @@ const { execSync } = require('child_process');
 console.log('📦 Creating Manual Release Package...\n');
 
 // Create release directory
-const releaseDir = 'release-v0.2.2';
-const betaDir = 'Beta_0.2.1';
+const releaseDir = 'release-v0.2.5';
+const spoteyPortableDir = 'Spoteyfa-Portable/app';
 
 if (fs.existsSync(releaseDir)) {
     fs.rmSync(releaseDir, { recursive: true, force: true });
@@ -31,7 +31,7 @@ const filesToCopy = [
 ];
 
 filesToCopy.forEach(file => {
-    const src = path.join(betaDir, file);
+    const src = path.join(spoteyPortableDir, file);
     const dest = path.join(releaseDir, file);
     
     if (fs.existsSync(src)) {
@@ -71,7 +71,7 @@ pause
 fs.writeFileSync(path.join(releaseDir, 'INSTALL_AND_RUN.bat'), installScript);
 
 // Create README for release
-const releaseReadme = `# 🎵 Apple Spotify Player v0.2.2
+const releaseReadme = `# 🎵 Apple Spotify Player v0.2.5
 
 ## 🚀 Quick Start
 
