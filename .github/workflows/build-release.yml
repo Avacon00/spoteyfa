@@ -64,13 +64,24 @@ jobs:
             console.log('Has build config:', !!pkg.build);
           "
 
-      - name: ⚡ Build application
-        shell: ${{ matrix.platform == 'win' && 'cmd' || 'bash' }}
+      - name: 🪟 Build Windows
+        if: matrix.platform == 'win'
+        shell: cmd
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd 0.3.0
-          echo Building SPOTEYFA v0.3.0 for ${{ matrix.platform }}
+          echo Building SPOTEYFA v0.3.0 for Windows
+          npm run build
+
+      - name: 🍎 Build macOS/Linux
+        if: matrix.platform != 'win'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd 0.3.0
+          echo "Building SPOTEYFA v0.3.0 for ${{ matrix.platform }}"
           npm run build
 
       - name: 📁 List build outputs
