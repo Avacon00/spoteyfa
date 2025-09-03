@@ -65,21 +65,13 @@ jobs:
           "
 
       - name: ⚡ Build application
+        shell: ${{ matrix.platform == 'win' && 'cmd' || 'bash' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd 0.3.0
-          echo "Building SPOTEYFA v0.3.0 for ${{ matrix.platform }}"
-          
-          if [ "${{ matrix.platform }}" = "win" ]; then
-            npm run build:win
-          elif [ "${{ matrix.platform }}" = "mac" ]; then
-            npm run build:mac
-          elif [ "${{ matrix.platform }}" = "linux" ]; then
-            npm run build:linux
-          else
-            npm run build
-          fi
+          echo Building SPOTEYFA v0.3.0 for ${{ matrix.platform }}
+          npm run build
 
       - name: 📁 List build outputs
         run: |
