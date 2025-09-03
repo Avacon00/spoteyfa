@@ -1,0 +1,10 @@
+# Build directories
+dist/
+node_modules/
+portable/
+simulated-builds/
+*.AppImage
+*.exe
+*.dmg
+*.deb
+*.zip
