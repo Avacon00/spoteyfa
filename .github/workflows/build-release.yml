@@ -84,7 +84,22 @@ jobs:
           echo "Building SPOTEYFA v0.3.0 for ${{ matrix.platform }}"
           npm run build
 
-      - name: 📁 List build outputs
+      - name: 📁 List Windows build outputs
+        if: matrix.platform == 'win'
+        shell: cmd
+        run: |
+          cd 0.3.0
+          echo Build artifacts:
+          if exist dist (
+            dir dist
+          ) else (
+            echo No dist directory found
+            dir
+          )
+
+      - name: 📁 List macOS/Linux build outputs  
+        if: matrix.platform != 'win'
+        shell: bash
         run: |
           cd 0.3.0
           echo "Build artifacts:"
