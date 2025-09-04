@@ -1,4 +1,4 @@
-# SPOTEYFA v0.3.0 - FINAL Portable Windows Version
+# SPOTEYFA v0.3.0 - Stable Release (Windows Portable)
 
 ## 🚀 EINFACHE INSTALLATION
 

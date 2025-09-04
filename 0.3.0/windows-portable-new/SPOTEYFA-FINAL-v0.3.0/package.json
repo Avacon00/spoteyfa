@@ -37,18 +37,22 @@
     }
   },
   "portable-info": {
-    "created": "2025-09-04T09:12:00.110Z",
+    "created": "2025-09-04T23:00:00.000Z",
     "platform": "win32",
     "arch": "x64",
     "electron": "28.0.0",
+    "release": "v0.3.0-stable",
     "features": [
       "Apple Glassmorphism Design",
-      "Drag & Drop",
+      "Automatic Node.js Installation",
+      "Drag & Drop Support", 
       "Multi-Monitor Support",
       "Sleep Timer",
-      "Auto-Update",
+      "Auto-Update System",
       "Focus Mode",
-      "Internationalization (DE/EN)"
+      "Internationalization (DE/EN)",
+      "Complete Error Recovery",
+      "System Diagnostics"
     ]
   }
 }
