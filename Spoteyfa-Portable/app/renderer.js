@@ -18,11 +18,16 @@ class AppleSpotifyPlayer {
         this.lastServerProgress = 0;
         this.localProgressStart = 0;
         
-        // Monitoring
+        // Performance-optimized monitoring
         this.monitoringInterval = null;
-        this.currentPollingInterval = 2000; // Dynamic polling interval
-        this.isUserActive = true; // Track user activity
+        this.currentPollingInterval = 3000; // Increased from 2s to 3s
+        this.isUserActive = true;
         this.lastUserActivity = Date.now();
+        this.performanceMode = false; // Reduced animations when inactive
+        
+        // Optimized update tracking
+        this.lastTrackData = null;
+        this.updateThrottle = null;
         
         // DOM elements
         this.elements = {
@@ -65,6 +70,11 @@ class AppleSpotifyPlayer {
             this.progressInterval = null;
         }
         
+        if (this.updateThrottle) {
+            clearTimeout(this.updateThrottle);
+            this.updateThrottle = null;
+        }
+        
         // Cancel animation frames
         this.stopProgressAnimation();
         
@@ -83,6 +93,10 @@ class AppleSpotifyPlayer {
         ['click', 'keydown', 'mousemove'].forEach(event => {
             document.removeEventListener(event, this.activityHandler);
         });
+        
+        // Clear cached data
+        this.lastTrackData = null;
+        this.currentTrack = null;
         
         console.log('✅ Cleanup completed');
     }
@@ -112,6 +126,16 @@ class AppleSpotifyPlayer {
             this.toggleTheme();
             this.resetAutoHideTimer();
         });
+        
+        // Right-click context menu
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            ipcRenderer.send('show-context-menu');
+            this.resetAutoHideTimer();
+        });
+        
+        // Drag functionality with visual feedback
+        this.setupDragFunctionality();
         
         // Play/Pause
         this.elements.playBtn.addEventListener('click', () => {
@@ -783,3 +807,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const player = new AppleSpotifyPlayer();
     window.applePlayer = player;
 });
+
+// Drag functionality implementation
+AppleSpotifyPlayer.prototype.setupDragFunctionality = function() {
+    const playerWidget = document.getElementById('playerWidget');
+    let isDragging = false;
+    let startX, startY, startMouseX, startMouseY;
+    
+    // Mouse down on draggable area
+    playerWidget.addEventListener('mousedown', (e) => {
+        // Only start dragging if not clicking on interactive elements
+        if (e.target.tagName === 'BUTTON' || 
+            e.target.closest('.control-btn') || 
+            e.target.closest('.progress-container') ||
+            e.target.closest('.volume-container')) {
+            return;
+        }
+        
+        isDragging = true;
+        playerWidget.classList.add('dragging');
+        
+        startMouseX = e.screenX;
+        startMouseY = e.screenY;
+        
+        // Get current window position
+        ipcRenderer.invoke('get-window-position').then(position => {
+            startX = position.x;
+            startY = position.y;
+        });
+        
+        e.preventDefault();
+        this.resetAutoHideTimer();
+    });
+    
+    // Mouse move during drag
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const deltaX = e.screenX - startMouseX;
+        const deltaY = e.screenY - startMouseY;
+        
+        const newX = startX + deltaX;
+        const newY = startY + deltaY;
+        
+        ipcRenderer.send('set-window-position', { x: newX, y: newY });
+        
+        e.preventDefault();
+    });
+    
+    // Mouse up - end drag
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            playerWidget.classList.remove('dragging');
+            this.resetAutoHideTimer();
+        }
+    });
+    
+    // Handle drag leaving window bounds
+    document.addEventListener('mouseleave', () => {
+        if (isDragging) {
+            isDragging = false;
+            playerWidget.classList.remove('dragging');
+        }
+    });
+    
+    console.log('🖱️ Drag functionality initialized');
+};

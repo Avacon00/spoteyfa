@@ -36,6 +36,28 @@ body {
     user-select: none;
 }
 
+/* Draggable Area Styles */
+.draggable-area {
+    -webkit-app-region: drag;
+    cursor: move;
+}
+
+/* Non-draggable controls within draggable area */
+.draggable-area button,
+.draggable-area .control-btn,
+.draggable-area .progress-container,
+.draggable-area .volume-container {
+    -webkit-app-region: no-drag;
+    cursor: pointer;
+}
+
+/* Visual feedback during drag */
+.draggable-area.dragging {
+    opacity: 0.8;
+    transform: scale(0.98);
+    transition: all 0.2s ease;
+}
+
 /* Main Player Widget - Authentisches macOS Window */
 .player-widget {
     width: 400px; /* Feste Breite zurück */
