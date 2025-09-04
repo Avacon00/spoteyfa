@@ -1,0 +1,18 @@
+# SPOTEYFA v0.3.0 - Windows Portable Checksums
+File: SPOTEYFA-Windows-Portable-v0.3.0-Complete.zip
+Size: 40057 bytes
+Date: 2025-09-04T09:14:11.118Z
+
+SHA256: 1cdb84d6b2560f294a4054b8b1ccd7a92a5529938ad479757b7baae502ce639b
+MD5: c77fc2f0eea0d86fe97b6d2b848805fc
+
+## Verification
+To verify the download integrity:
+
+### Windows PowerShell:
+Get-FileHash "SPOTEYFA-Windows-Portable-v0.3.0-Complete.zip" -Algorithm SHA256
+
+### Linux/macOS:
+sha256sum "SPOTEYFA-Windows-Portable-v0.3.0-Complete.zip"
+
+The output should match the SHA256 hash above.
