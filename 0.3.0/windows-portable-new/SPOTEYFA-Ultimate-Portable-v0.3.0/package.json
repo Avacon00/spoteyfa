@@ -1,0 +1,54 @@
+{
+  "name": "spoteyfa-portable",
+  "version": "0.3.0",
+  "description": "SPOTEYFA - Apple-Style Spotify Player (Portable Windows Version)",
+  "main": "main.js",
+  "homepage": "https://github.com/Avacon00/spoteyfa",
+  "author": {
+    "name": "SPOTEYFA Team",
+    "email": "spoteyfa@example.com"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "debug": "electron . --enable-logging --log-level=0 --show",
+    "force-show": "electron . --show --force-window-show"
+  },
+  "keywords": [
+    "electron",
+    "spotify",
+    "apple",
+    "music",
+    "glassmorphism",
+    "portable",
+    "windows"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.0.0",
+    "axios": "^1.6.0",
+    "spotify-web-api-node": "^5.0.2",
+    "electron-updater": "^6.6.2"
+  },
+  "build": {
+    "productName": "SPOTEYFA Portable",
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "portable-info": {
+    "created": "2025-09-04T09:12:00.110Z",
+    "platform": "win32",
+    "arch": "x64",
+    "electron": "28.0.0",
+    "features": [
+      "Apple Glassmorphism Design",
+      "Drag & Drop",
+      "Multi-Monitor Support",
+      "Sleep Timer",
+      "Auto-Update",
+      "Focus Mode",
+      "Internationalization (DE/EN)"
+    ]
+  }
+}

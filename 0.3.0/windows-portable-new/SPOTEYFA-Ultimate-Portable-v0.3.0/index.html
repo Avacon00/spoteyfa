@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple-Style Spotify Player</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
+</head>
+<body>
+    <div class="player-widget draggable-area" id="playerWidget">
+        <!-- Header with Close Button and Theme Toggle -->
+        <header class="player-header">
+            <button class="theme-toggle-btn" id="themeToggle" title="Dark/Light Mode">🌙</button>
+            <button class="close-btn" id="closeBtn">✕</button>
+        </header>
+
+        <!-- Album Cover (240x240px) -->
+        <div class="album-cover" id="albumCover">
+            <img id="coverImage" style="display: none;" alt="Album Cover">
+            <div class="cover-placeholder" id="coverPlaceholder">🎵</div>
+        </div>
+
+        <!-- Song Information -->
+        <div class="song-info">
+            <h1 class="song-title" id="songTitle" data-i18n="spotifyPlayer">Spotify Player</h1>
+            <h2 class="artist-name" id="artistName" data-i18n="loading">Loading...</h2>
+            <h3 class="album-name" id="albumName" data-i18n="pleaseWait">Please wait</h3>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <!-- Time Display -->
+            <div class="time-info">
+                <span class="time-current" id="timeCurrent">0:00</span>
+                <span class="time-total" id="timeTotal">0:00</span>
+            </div>
+        </div>
+
+        <!-- Media Controls -->
+        <div class="media-controls">
+            <button class="control-btn" id="prevBtn" data-i18n-title="previous" title="Previous">⏮</button>
+            <button class="control-btn play-btn" id="playBtn" data-i18n-title="pause" title="Pause">⏸</button>
+            <button class="control-btn" id="nextBtn" data-i18n-title="next" title="Next">⏭</button>
+        </div>
+
+        <!-- Volume Control -->
+        <div class="volume-section">
+            <span class="volume-icon">🔊</span>
+            <div class="volume-container">
+                <div class="volume-bar">
+                    <div class="volume-fill" id="volumeFill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spotify Configuration wird jetzt sicher verwaltet -->
+    <script>
+        window.SPOTIFY_CONFIG = {
+            REDIRECT_URI: 'http://127.0.0.1:8888/callback'
+            // CLIENT_ID und CLIENT_SECRET werden sicher aus localStorage geladen
+        };
+    </script>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
