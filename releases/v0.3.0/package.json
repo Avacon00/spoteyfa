@@ -1,0 +1,112 @@
+{
+  "name": "apple-spotify-player",
+  "version": "0.3.0",
+  "description": "Apple-Style Spotify Player with Glassmorphism",
+  "main": "main.js",
+  "homepage": "https://github.com/Avacon00/spoteyfa",
+  "author": {
+    "name": "SPOTEYFA Team",
+    "email": "spoteyfa@example.com"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:linux": "electron-builder --linux",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder --linux --win --mac",
+    "dist": "npm run build:all"
+  },
+  "keywords": [
+    "electron",
+    "spotify",
+    "apple",
+    "music",
+    "glassmorphism"
+  ],
+  "author": "Claude Code",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0",
+    "electron-updater": "^6.6.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "spotify-web-api-node": "^5.0.2",
+    "electron-updater": "^6.6.2"
+  },
+  "build": {
+    "appId": "com.spoteyfa.player",
+    "productName": "SPOTEYFA",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "i18n.js",
+      "index.html",
+      "style.css",
+      "config-manager.js",
+      "setup-wizard.html",
+      "assets/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "Avacon00",
+      "repo": "spoteyfa"
+    },
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["universal"]
+        }
+      ],
+      "darkModeSupport": true,
+      "hardenedRuntime": true,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "publisherName": "SPOTEYFA",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "category": "AudioVideo",
+      "desktop": {
+        "Name": "SPOTEYFA",
+        "Comment": "Apple-style Spotify overlay player",
+        "Categories": "Audio;Music;AudioVideo;",
+        "StartupWMClass": "SPOTEYFA"
+      },
+      "maintainer": "SPOTEYFA Team <spoteyfa@example.com>"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SPOTEYFA v0.3.0"
+    }
+  }
+}
