@@ -142,7 +142,15 @@ class I18n {
     }
     
     detectLanguage() {
-        // Check saved preference
+        // Check if we're in main process (no localStorage) or renderer process
+        if (typeof localStorage === 'undefined') {
+            // Main process - use OS locale or default to German for Windows
+            const os = require('os');
+            const locale = os.platform() === 'win32' ? 'de' : 'en';
+            return locale;
+        }
+        
+        // Renderer process - check saved preference
         const savedLang = localStorage.getItem('spoteyfa-language');
         if (savedLang && this.translations[savedLang]) {
             return savedLang;
@@ -161,7 +169,10 @@ class I18n {
     setLanguage(lang) {
         if (this.translations[lang]) {
             this.currentLanguage = lang;
-            localStorage.setItem('spoteyfa-language', lang);
+            // Only save to localStorage in renderer process
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('spoteyfa-language', lang);
+            }
             console.log(`🌐 Language set to: ${lang}`);
             return true;
         }
