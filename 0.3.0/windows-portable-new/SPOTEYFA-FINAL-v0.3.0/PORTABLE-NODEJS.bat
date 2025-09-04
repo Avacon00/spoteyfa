@@ -42,16 +42,7 @@ echo Lade portable Node.js %ARCH% herunter...
 echo URL: %NODEJS_URL%
 echo.
 
-powershell -Command "
-Write-Host 'Download startet...'
-try {
-    Invoke-WebRequest -Uri '%NODEJS_URL%' -OutFile '%NODEJS_ZIP%' -UseBasicParsing
-    $size = (Get-Item '%NODEJS_ZIP%').Length / 1MB
-    Write-Host ('Download komplett: {0:F1} MB' -f $size)
-} catch {
-    Write-Host ('Fehler: ' + $_.Exception.Message)  
-    exit 1
-}"
+powershell -Command "& {Write-Host 'Download startet...'; try {Invoke-WebRequest -Uri '%NODEJS_URL%' -OutFile '%NODEJS_ZIP%' -UseBasicParsing; $size = (Get-Item '%NODEJS_ZIP%').Length / 1MB; Write-Host ('Download komplett: {0:F1} MB' -f $size)} catch {Write-Host ('Fehler: ' + $_.Exception.Message); exit 1}}"
 
 if %errorlevel% neq 0 (
     echo ❌ Download fehlgeschlagen!
@@ -75,15 +66,7 @@ if exist "%NODEJS_DIR%" (
 
 echo Entpacke Node.js nach: %NODEJS_DIR%
 
-powershell -Command "
-try {
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::ExtractToDirectory('%NODEJS_ZIP%', '%cd%')
-    Write-Host 'Entpacken erfolgreich'
-} catch {
-    Write-Host ('Fehler beim Entpacken: ' + $_.Exception.Message)
-    exit 1  
-}"
+powershell -Command "& {try {Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('%NODEJS_ZIP%', '%cd%'); Write-Host 'Entpacken erfolgreich'} catch {Write-Host ('Fehler beim Entpacken: ' + $_.Exception.Message); exit 1}}"
 
 if %errorlevel% neq 0 (
     echo ❌ Entpacken fehlgeschlagen!
@@ -132,11 +115,47 @@ if not exist "package.json" (
 )
 
 echo Installiere SPOTEYFA mit portable Node.js...
-npm install --production
+echo.
 
-if %errorlevel% neq 0 (
-    echo ⚠️ Versuche alternative Installation...
-    npm install --production --no-optional
+REM Mehrere Installationsversuche mit portable Node.js
+set INSTALL_SUCCESS=0
+
+echo [Versuch 1/3] Standard Installation...
+npm install --production
+if %errorlevel% equ 0 (
+    set INSTALL_SUCCESS=1
+    goto portable_done
+)
+
+echo [Versuch 2/3] Ohne optionale Dependencies...
+npm install --production --no-optional
+if %errorlevel% equ 0 (
+    set INSTALL_SUCCESS=1
+    goto portable_done
+)
+
+echo [Versuch 3/3] Mit legacy peer deps...
+npm cache clean --force
+npm install --production --legacy-peer-deps --no-optional
+if %errorlevel% equ 0 (
+    set INSTALL_SUCCESS=1
+    goto portable_done
+)
+
+echo ❌ Alle Installationsversuche fehlgeschlagen!
+echo Moegliche Ursachen:
+echo - Unvollstaendiger Download
+echo - Berechtigungsprobleme
+echo - Antivirus blockiert Installation
+echo.
+pause
+exit /b 1
+
+:portable_done
+if %INSTALL_SUCCESS% neq 1 (
+    echo ❌ Portable Installation fehlgeschlagen
+    pause
+    exit /b 1
 )
 
 echo.
@@ -151,11 +170,17 @@ echo WICHTIG: Verwenden Sie ab jetzt:
 echo "SPOTEYFA-PORTABLE-STARTEN.bat"
 echo.
 
-REM Erstelle portable Starter
+REM Erstelle portable Starter mit vollstaendigem Setup
 echo @echo off > SPOTEYFA-PORTABLE-STARTEN.bat
 echo title SPOTEYFA - Portable Start >> SPOTEYFA-PORTABLE-STARTEN.bat
-echo set "PATH=%NODEJS_DIR%;%%PATH%%" >> SPOTEYFA-PORTABLE-STARTEN.bat
+echo cd /d "%%~dp0" >> SPOTEYFA-PORTABLE-STARTEN.bat
+echo set "PATH=%%cd%%\nodejs-portable;%%PATH%%" >> SPOTEYFA-PORTABLE-STARTEN.bat
+echo echo Starte SPOTEYFA... >> SPOTEYFA-PORTABLE-STARTEN.bat
 echo npm start >> SPOTEYFA-PORTABLE-STARTEN.bat
+echo if %%errorlevel%% neq 0 ( >> SPOTEYFA-PORTABLE-STARTEN.bat
+echo     echo Fehler beim Start! Versuche Debug... >> SPOTEYFA-PORTABLE-STARTEN.bat
+echo     npm run debug >> SPOTEYFA-PORTABLE-STARTEN.bat
+echo ^) >> SPOTEYFA-PORTABLE-STARTEN.bat
 echo pause >> SPOTEYFA-PORTABLE-STARTEN.bat
 
 echo ✅ Portable Starter erstellt: SPOTEYFA-PORTABLE-STARTEN.bat

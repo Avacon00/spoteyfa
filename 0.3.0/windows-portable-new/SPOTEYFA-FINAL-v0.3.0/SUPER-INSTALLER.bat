@@ -76,17 +76,7 @@ echo Ziel: %NODEJS_FILE%
 echo.
 
 REM Download mit detailliertem Fortschritt
-powershell -Command "
-Write-Host 'Download startet...'
-try {
-    $webClient = New-Object System.Net.WebClient
-    $webClient.DownloadFile('%NODEJS_URL%', '%NODEJS_FILE%')
-    $size = (Get-Item '%NODEJS_FILE%').Length
-    Write-Host ('Download komplett: {0:N0} Bytes' -f $size)
-} catch {
-    Write-Host ('FEHLER: ' + $_.Exception.Message)
-    exit 1
-}"
+powershell -Command "& {Write-Host 'Download startet...'; try {$webClient = New-Object System.Net.WebClient; $webClient.DownloadFile('%NODEJS_URL%', '%NODEJS_FILE%'); $size = (Get-Item '%NODEJS_FILE%').Length; Write-Host ('Download komplett: {0:N0} Bytes' -f $size)} catch {Write-Host ('FEHLER: ' + $_.Exception.Message); exit 1}}"
 
 if %errorlevel% neq 0 (
     echo.
@@ -232,12 +222,51 @@ echo ✅ SPOTEYFA Dateien gefunden
 
 echo.
 echo Installiere SPOTEYFA Dependencies...
-npm install --production
+echo.
 
-if %errorlevel% neq 0 (
-    echo ⚠️ NPM Install Probleme, versuche Alternativen...
-    npm cache clean --force
-    npm install --production --legacy-peer-deps
+REM Mehrere Installationsversuche
+set INSTALL_SUCCESS=0
+
+echo [Versuch 1/3] Standard Installation...
+npm install --production
+if %errorlevel% equ 0 (
+    set INSTALL_SUCCESS=1
+    goto dependencies_done
+)
+
+echo [Versuch 2/3] Cache leeren und erneut versuchen...
+npm cache clean --force
+npm install --production --legacy-peer-deps
+if %errorlevel% equ 0 (
+    set INSTALL_SUCCESS=1
+    goto dependencies_done
+)
+
+echo [Versuch 3/3] Offline Installation...
+npm install --production --prefer-offline --no-audit
+if %errorlevel% equ 0 (
+    set INSTALL_SUCCESS=1
+    goto dependencies_done
+)
+
+echo ❌ Alle Installationsversuche fehlgeschlagen!
+echo.
+echo LOESUNGSVORSCHLAEGE:
+echo 1. Internet-Verbindung pruefen
+echo 2. Als Administrator starten
+echo 3. Windows Defender/Antivirus temporaer deaktivieren
+echo 4. Portable Version verwenden (Option 2)
+echo.
+pause
+exit /b 1
+
+:dependencies_done
+if %INSTALL_SUCCESS% equ 1 (
+    echo ✅ Dependencies erfolgreich installiert
+) else (
+    echo ❌ Dependencies Installation fehlgeschlagen
+    pause
+    exit /b 1
 )
 
 echo.
@@ -247,6 +276,20 @@ echo ========================================
 echo.
 echo ✅ Node.js: Installiert und funktionsfaehig
 echo ✅ SPOTEYFA: Dependencies installiert
+
+REM Erstelle permanenten Starter
+echo @echo off > SPOTEYFA-STARTEN.bat
+echo title SPOTEYFA - Application Start >> SPOTEYFA-STARTEN.bat
+echo cd /d "%%~dp0" >> SPOTEYFA-STARTEN.bat
+echo echo Starte SPOTEYFA... >> SPOTEYFA-STARTEN.bat
+echo npm start >> SPOTEYFA-STARTEN.bat
+echo if %%errorlevel%% neq 0 ( >> SPOTEYFA-STARTEN.bat
+echo     echo Fehler beim Start! Versuche Debug... >> SPOTEYFA-STARTEN.bat
+echo     npm run debug >> SPOTEYFA-STARTEN.bat
+echo ^) >> SPOTEYFA-STARTEN.bat
+echo pause >> SPOTEYFA-STARTEN.bat
+
+echo ✅ Permanenter Starter erstellt: SPOTEYFA-STARTEN.bat
 echo.
 echo SPOTEYFA wird gestartet...
 timeout /t 3 /nobreak >nul
@@ -259,6 +302,13 @@ if %errorlevel% neq 0 (
     npm run debug
 )
 
+echo.
+echo ========================================
+echo     INSTALLATION ERFOLGREICH!
+echo ========================================
+echo.
+echo Verwenden Sie ab jetzt:
+echo "SPOTEYFA-STARTEN.bat"
 echo.
 pause
 exit /b 0
